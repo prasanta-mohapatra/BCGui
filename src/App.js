@@ -1,14 +1,19 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import DashboardScreen from "./screens/DashboardScreen";
-import ManageScreen from "./screens/ManageScreen";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import Dashboard from "./Components/Dashboard";
+import Manage from "./Components/Manage";
+import Header from "./Components/Header";
+import { Container } from "react-bootstrap";
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<DashboardScreen />} />
-        <Route path="/manage" element={<ManageScreen />} />
-      </Routes>
+      <Header />
+      <Container fluid>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/manage" element={<Manage />} />
+        </Routes>
+      </Container>
     </BrowserRouter>
   );
 }
