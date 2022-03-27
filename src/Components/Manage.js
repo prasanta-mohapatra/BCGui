@@ -1,47 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Button, Row, Col, Table, Modal } from "react-bootstrap";
-import { Customer, Policy, Input } from "./Filter";
+import axios from "axios";
+import { Customer, Policy } from "./Filter";
 import {
   MdFilterList,
   MdModeEditOutline,
   MdRemoveRedEye,
   MdDone,
 } from "react-icons/md";
-import { useEffect } from "react";
 
-///SAMPLE DB DATA
-import * as res from "../DB/data";
-import fuzzySearch from "../fuzzySearch";
-
-const ManageFilter = () => {
+const ManageFilter = ({ filterData }) => {
   const [customer, setCustomer] = useState("");
   const [policy, setPolicy] = useState("");
-
-  const filterAPI = (customer, policy) => {
-    if (customer || policy) {
-    }
-  };
   return (
     <Row style={{ padding: "1rem" }}>
       <Col xs={5} md={4} lg={3}>
-        <input
-          placeholder="Select Customer"
+        <Customer
           onChange={(e) => setCustomer(e.target.value)}
           value={customer}
         />
       </Col>
       <Col xs={4} md={4} lg={3}>
-        <input
-          placeholder="Select Policy"
-          value={policy}
-          onChange={(e) => setPolicy(e.target.value)}
-        />
+        <Policy onChange={(e) => setPolicy(e.target.value)} value={policy} />
       </Col>
       <Col xs={3} md={4} lg={3}>
         <Button
-          onClick={() => {
-            console.log(customer, policy, "Called");
-          }}
+          onClick={() =>
+            filterData(
+              `?customer=${customer || "All"}&policy=${policy || "All"}`
+            )
+          }
         >
           <MdFilterList />
           &nbsp;Filter
@@ -91,7 +79,7 @@ function MyAction(props) {
     </Modal>
   );
 }
-const ManageData = ({ loading, data, info }) => {
+const ManageData = ({ loading, data, info, offset }) => {
   const [modalShow, setModalShow] = React.useState(false);
   const [localData, setLocalData] = React.useState({});
 
@@ -112,52 +100,49 @@ const ManageData = ({ loading, data, info }) => {
             <th>Policy ID</th>
             <th>Customer ID</th>
             <th>Insurance</th>
+            <th>DOP</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          {loading ? (
-            <h1>....loading.....</h1>
-          ) : (
-            <>
-              {data.length > 0 ? (
-                data.map((item, index) => (
-                  <tr key={index}>
-                    <td>{item.slno}</td>
-                    <td>{item.policy_id}</td>
-                    <td>{item.customer_id}</td>
-                    <td>
-                      {info &&
-                        info.map((it) => (
-                          <Button key={it.key} variant={it.color} size="sm">
-                            <MdDone />
-                          </Button>
-                        ))}
-                    </td>
-                    <td>
-                      <Button
-                        variant="warning"
-                        size="sm"
-                        onClick={() => editData(item)}
-                      >
-                        <MdModeEditOutline />
-                      </Button>
-                      &nbsp;
-                      <Button
-                        variant="success"
-                        size="sm"
-                        onClick={() => viewData(item)}
-                      >
-                        <MdRemoveRedEye />
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <h1>No DATA FOUND</h1>
-              )}
-            </>
-          )}
+          {data &&
+            data.map((item, index) => (
+              <tr key={index}>
+                <td>{offset + index + 1}</td>
+                <td>{item.policy_id}</td>
+                <td>{item.customer_id}</td>
+                <td>
+                  {info &&
+                    info.map((it) =>
+                      item[it.id] ? (
+                        <Button key={it.key} variant={it.color} size="sm">
+                          <MdDone />
+                        </Button>
+                      ) : (
+                        ""
+                      )
+                    )}
+                </td>
+                <td>{item.date_of_purchase}</td>
+                <td>
+                  <Button
+                    variant="warning"
+                    size="sm"
+                    onClick={() => editData(item)}
+                  >
+                    <MdModeEditOutline />
+                  </Button>
+                  &nbsp;
+                  <Button
+                    variant="success"
+                    size="sm"
+                    onClick={() => viewData(item)}
+                  >
+                    <MdRemoveRedEye />
+                  </Button>
+                </td>
+              </tr>
+            ))}
         </tbody>
       </Table>
       <MyAction
@@ -168,26 +153,69 @@ const ManageData = ({ loading, data, info }) => {
     </>
   );
 };
+const Paginate = () => {
+  return (
+    <Row style={{ display: "flex", justifyContent: "flex-end" }}>
+      <Col xs={2} md={2} lg={1}>
+        <Button variant="primary">Prev</Button>
+      </Col>
+      <Col xs={2} md={2} lg={1}>
+        <Button variant="info">Next</Button>
+      </Col>
+    </Row>
+  );
+};
 
 const Manage = (props) => {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [info, setInfo] = useState([]);
+  const [offset, setOffset] = useState(0);
+  const [ret, setRet] = useState("?customer=All&policy=All");
+  const info = [
+    {
+      color: "primary",
+      name: "Body Injury",
+      key: "a",
+      id: "body_injury_liability",
+    },
+    {
+      color: "danger",
+      name: "Collision",
+      key: "b",
+      id: "collision_liability",
+    },
+    {
+      color: "secondary",
+      name: "Personal Injury",
+      key: "c",
+      id: "personal_injury_liability",
+    },
+    {
+      color: "warning",
+      name: "Property Injury",
+      key: "d",
+      id: "property_injury_liability",
+    },
+    {
+      color: "info",
+      name: "Comprehensive",
+      key: "e",
+      id: "comprehensive_liability",
+    },
+  ];
+  const setFilterData = (dt) => setRet(dt);
 
   useEffect(() => {
-    ///====MAKE API calll here
-    setTimeout(() => {
-      ///don't need timeout when calling api
-      setData(res.tableData);
-      setInfo(res.info);
-      setLoading(false);
-    }, 2000);
-  }, []);
+    axios
+      .get(`http://127.0.0.1:8000/allpolicydata/${offset}${ret}`)
+      .then((response) => setData(response.data))
+      .catch((error) => console.log(error));
+  }, [ret]);
   return (
-    <Container>
-      <ManageFilter />
+    <Container fluid>
+      <ManageFilter filterData={setFilterData} />
       <Information info={info} />
-      <ManageData data={data} loading={loading} info={info} />
+      <ManageData data={data} info={info} offset={offset} />
+      <Paginate />
     </Container>
   );
 };

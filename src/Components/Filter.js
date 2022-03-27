@@ -1,50 +1,41 @@
 import React from "react";
 import { Form } from "react-bootstrap";
-import SelectSearch from "react-select-search";
 
-const Zone = ({ list = [] }) => {
+const Zone = ({ list = ["East", "West", "North", "South"] }) => {
   return (
-    <SelectSearch
-      options={list}
-      value="sv"
-      name="language"
-      placeholder="Choose your Zone"
-    />
+    <Form.Select name="zone" id="zone">
+      <option value="">Select the Zone</option>
+      {list &&
+        list.map((item, index) => (
+          <option key={index} value="{item}">
+            {item}
+          </option>
+        ))}
+    </Form.Select>
   );
 };
-const Customer = ({ list = [], debounce, onChange, filterOptions }) => {
+const Customer = ({ onChange, value }) => {
   return (
-    <SelectSearch
-      options={list}
-      value="sv"
-      name="language"
-      placeholder="Choose Customer"
-      debounce={debounce}
-      onChange={() => console.log("hi")}
-      search
-      emptyMessage={() => (
-        <div style={{ textAlign: "center", fontSize: "0.8em" }}>
-          Not found renderer
-        </div>
-      )}
-      filterOptions={filterOptions}
+    <Form.Control
+      variant="text"
+      id="customer"
+      placeholder="enter customer id"
+      value={value}
+      onChange={onChange}
     />
   );
 };
 
-const Policy = ({ list = [] }) => {
+const Policy = ({ onChange, value }) => {
   return (
-    <SelectSearch
-      options={list}
-      value="sv"
-      name="language"
-      placeholder="Choose your Policy"
+    <Form.Control
+      variant="text"
+      id="policy"
+      placeholder="enter policy id"
+      value={value}
+      onChange={onChange}
     />
   );
 };
 
-const Input = (value = "", onChange, placeholder) => {
-  return <input value={value} onChange={onChange} placeholder={placeholder} />;
-};
-
-export { Zone, Customer, Policy, Input };
+export { Zone, Customer, Policy };
