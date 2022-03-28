@@ -1,13 +1,17 @@
 import React from "react";
 import { Form } from "react-bootstrap";
 
-const Zone = ({ list = ["East", "West", "North", "South"] }) => {
+const Zone = ({
+  list = ["East", "West", "North", "South"],
+  onChange,
+  value,
+}) => {
   return (
-    <Form.Select name="zone" id="zone">
-      <option value="">Select the Zone</option>
+    <Form.Select value={value} onChange={onChange}>
+      <option value="">Select the Region</option>
       {list &&
         list.map((item, index) => (
-          <option key={index} value="{item}">
+          <option key={index} value={item}>
             {item}
           </option>
         ))}
